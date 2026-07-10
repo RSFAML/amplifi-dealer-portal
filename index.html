@@ -162,6 +162,20 @@
   .barcol .bv{font-size:10px;color:var(--muted);margin-bottom:3px}
   #toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;opacity:0;transition:.3s;z-index:99}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* ---- generate-contract verify modal ---- */
+  .vstep{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+  .vhd{font-weight:800;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .vnum{width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+  .vchk{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:10px;font-weight:600;cursor:pointer}
+  .prod{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
+  .prod .ptop{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+  .dropz{border:2px dashed var(--brand-100);border-radius:8px;padding:14px;text-align:center;color:var(--muted);font-size:12px;background:var(--panel);cursor:pointer}
+  .dropz.drag{border-color:var(--brand);background:var(--brand-050);color:var(--brand)}
+  .dropz.done{border-style:solid;border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
+  .pverdict{font-size:12.5px;margin-top:8px;font-weight:700;color:var(--muted)}
+  .pverdict.ok{color:var(--ok)}.pverdict.bad{color:var(--bad)}.pverdict.loading{color:var(--brand)}
+  .ct-block{background:var(--bad-bg);border:1px solid #f0c3ba;color:var(--bad);border-radius:10px;padding:10px 12px;font-weight:700;font-size:12.5px;margin-top:10px}
+  .ct-block a{color:var(--bad);text-decoration:underline;cursor:pointer}
   /* ---- mobile / responsive ---- */
   @media (max-width:860px){
     .sidebar{position:static;width:auto;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px;overflow:visible}
@@ -220,7 +234,7 @@
     <span class="att dealact" id="attempts">2 re-decisions left</span>
     <button class="btn ghost sm dealact" onclick="resetDeal()">↺ Reset</button>
     <button class="btn outline sm dealact" onclick="go('portal')">Send Customer Portal</button>
-    <button class="btn orange sm dealact" onclick="toast('Contract package generated — routed for e-sign ✍️')">Generate Contract →</button>
+    <button class="btn orange sm dealact" onclick="openContract()">Generate Contract →</button>
   </div>
 
   <div class="content">
@@ -518,7 +532,7 @@
   <div><div class="lab">Reserve</div><div class="big" id="b_res">—</div></div>
   <div style="flex:1"></div>
   <button class="btn outline sm" style="background:transparent;color:#fff;border-color:#fff" onclick="go('portal')">Send Customer Portal</button>
-  <button class="btn orange sm" onclick="toast('Contract package generated — routed for e-sign ✍️')">Generate Contract →</button>
+  <button class="btn orange sm" onclick="openContract()">Generate Contract →</button>
 </div>
 
 <div class="overlay" id="ov_coll"><div class="modal" style="width:660px">
@@ -550,6 +564,27 @@
   <div class="fld"><label>Document type</label><select id="up_type" class="inp" style="width:100%;text-align:left"></select></div>
   <div class="drop" style="margin-top:12px">⬆<br>Drag &amp; drop your file here or click to browse<br><span style="font-size:11px">(pdf, doc, jpg, png, xlsx)</span></div>
   <div class="modrow"><button class="btn ghost sm" onclick="closeOv('ov_upload')">Cancel</button><button class="btn orange sm" onclick="uploadDone()">Upload Document</button></div>
+</div></div>
+
+<div class="overlay" id="ov_contract"><div class="modal" style="width:720px">
+  <h3>Generate Contract — verify before documents</h3><p class="sub">Confirm the deal, attach each back-end product form, and let the AI reader check cancellability.</p>
+  <div class="vstep">
+    <div class="vhd"><span class="vnum">1</span> Verify deal structure</div>
+    <div id="ct_dealsum"></div>
+    <label class="vchk"><input type="checkbox" id="ct_dealok" onchange="ctGate()"> Deal structure is correct</label>
+  </div>
+  <div class="vstep" id="ct_msrpstep">
+    <div class="vhd"><span class="vnum">2</span> Verify MSRP — new unit</div>
+    <div id="ct_msrpline"></div>
+    <label class="vchk"><input type="checkbox" id="ct_msrpok" onchange="ctGate()"> MSRP confirmed against manufacturer invoice</label>
+  </div>
+  <div class="vstep">
+    <div class="vhd"><span class="vnum">3</span> Back-end product forms &amp; AI cancellability check</div>
+    <div class="hint" style="margin-top:0">Drag each product's signed form/PDF into its box. Amplifi requires every back-end product to be cancellable.</div>
+    <div id="ct_products"></div>
+    <div id="ct_ai_summary"></div>
+  </div>
+  <div class="modrow"><button class="btn ghost sm" onclick="closeOv('ov_contract')">Cancel</button><button class="btn orange sm" id="ct_gen" onclick="ctGenerate()" disabled>Generate contract documents</button></div>
 </div></div>
 
 <div id="toast"></div>
@@ -825,7 +860,6 @@ function schedDone(){const d=document.getElementById('sc_date').value||'the requ
 /* tasks */
 const TASKS=[
   {t:'Proof of income (POI)',d:'Paystubs, bank statements, or retirement / pension',status:'ok',types:['Paystubs','Bank statements','Retirement / pension','SSA / award letter']},
-  {t:'Plaid — bank verification',d:'Account & income verified via Plaid',status:'ok',types:['Plaid connection']},
   {t:'Proof of residence',d:'Utility bill or lease — if requested',status:'wait',types:['Utility bill','Lease','Mortgage statement']},
   {t:'MSO / Title',d:'New → MSO · Used → Title',status:'wait',types:['MSO','Title']},
   {t:"Driver's license",d:'Fallback if not completed in Customer Portal',status:'wait',types:["Driver's license"]},
@@ -865,6 +899,68 @@ function closeOv(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
 function resetDeal(){openApp(curApp.id);toast('Deal reset');}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+
+/* ---- Generate Contract verification ---- */
+const FI_LABELS={fi_esc:'Extended service contract',fi_gap:'GAP',fi_road:'Road hazard',fi_tw:'Tire & wheel',fi_theft:'Anti-theft',fi_roof:'ESC — roof',fi_fob:'Key fob replacement',fi_paint:'Paint & fabrication'};
+const CANCELLABLE={fi_esc:true,fi_gap:true,fi_road:true,fi_tw:false,fi_theft:true,fi_roof:true,fi_fob:false,fi_paint:true};
+let ctState={};
+function openContract(){
+  const d=deal(),u=UNITS[state.unit];
+  document.getElementById('ct_dealsum').innerHTML=
+    '<div class="ph-row"><span>Applicant</span><b>'+curApp.name+'</b></div>'
+   +'<div class="ph-row"><span>Unit</span><b>'+u.name+' ('+(u.cond==='new'?'New':'Used')+')</b></div>'
+   +'<div class="ph-row"><span>Amount financed</span><b>'+fmt(d.amt)+'</b></div>'
+   +'<div class="ph-row"><span>Term / APR</span><b>'+state.term+' mo · '+pct(d.sell)+'</b></div>'
+   +'<div class="ph-row"><span>Monthly payment</span><b>'+fmt(d.pay)+'/mo</b></div>'
+   +'<div class="ph-row" style="border-bottom:0"><span>Down payment</span><b>'+fmt(d.totalDown)+'</b></div>';
+  const isNew=u.cond==='new';
+  document.getElementById('ct_msrpstep').style.display=isNew?'block':'none';
+  if(isNew)document.getElementById('ct_msrpline').innerHTML='<div class="ph-row" style="border-bottom:0"><span>MSRP (advance base)</span><b>'+fmt(u.msrp)+'</b></div>';
+  document.getElementById('ct_dealok').checked=false;
+  document.getElementById('ct_msrpok').checked=false;
+  ctState={};
+  const box=document.getElementById('ct_products');box.innerHTML='';
+  const keys=Object.keys(FI_LABELS).filter(k=>val(k)>0);
+  if(!keys.length){box.innerHTML='<div class="hint">No back-end products on this deal.</div>';}
+  keys.forEach(k=>{ctState[k]={uploaded:false,cancellable:null};
+    const el=document.createElement('div');el.className='prod';
+    el.innerHTML='<div class="ptop"><b>'+FI_LABELS[k]+'</b><span>'+fmt(val(k))+'</span></div>'
+      +'<div class="dropz" data-k="'+k+'">⬆ Drag &amp; drop the '+FI_LABELS[k]+' form (PDF) — or click to browse</div>'
+      +'<div class="pverdict" data-v="'+k+'">Awaiting document…</div>';
+    box.appendChild(el);});
+  box.querySelectorAll('.dropz').forEach(dz=>{const k=dz.dataset.k;
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');ctAnalyze(k,dz);});
+    dz.addEventListener('click',()=>ctAnalyze(k,dz));});
+  document.getElementById('ct_ai_summary').innerHTML='';
+  ctGate();
+  document.getElementById('ov_contract').classList.add('show');
+}
+function ctAnalyze(k,dz){
+  if(ctState[k].uploaded)return;
+  dz.classList.add('done');dz.textContent='📄 '+FI_LABELS[k]+' form uploaded';
+  const v=document.querySelector('.pverdict[data-v="'+k+'"]');
+  v.className='pverdict loading';v.textContent='🤖 AI reader analyzing document…';
+  setTimeout(()=>{const canc=CANCELLABLE[k];ctState[k]={uploaded:true,cancellable:canc};
+    if(canc){v.className='pverdict ok';v.innerHTML='✓ Cancellable — refund/cancellation clause detected (§8). OK to finance.';}
+    else{v.className='pverdict bad';v.innerHTML='⚠ Non-cancellable — no cancellation clause found in the form. This product must be cancellable.';}
+    ctGate();},1100);
+}
+function ctGate(){
+  const u=UNITS[state.unit],isNew=u.cond==='new';
+  const dealok=document.getElementById('ct_dealok').checked;
+  const msrpok=isNew?document.getElementById('ct_msrpok').checked:true;
+  const keys=Object.keys(ctState);
+  const allUp=keys.every(k=>ctState[k].uploaded);
+  const bad=keys.filter(k=>ctState[k].cancellable===false);
+  const summ=document.getElementById('ct_ai_summary');
+  if(bad.length){summ.innerHTML='<div class="ct-block">⚠ '+bad.map(k=>FI_LABELS[k]).join(', ')+' '+(bad.length>1?'are':'is')+' non-cancellable. Amplifi requires cancellable back-end products — remove or swap '+(bad.length>1?'them':'it')+'. <a onclick="closeOv(\'ov_contract\');go(\'deal\')">Update deal structure →</a></div>';}
+  else if(keys.length&&allUp){summ.innerHTML='<div style="color:var(--ok);font-weight:700;font-size:12.5px;margin-top:10px">✓ All back-end products verified cancellable.</div>';}
+  else{summ.innerHTML='';}
+  document.getElementById('ct_gen').disabled=!(dealok&&msrpok&&allUp&&bad.length===0);
+}
+function ctGenerate(){closeOv('ov_contract');toast('Contract package generated — routed for e-sign ✍️');}
 
 buildApps();buildTasks();buildRateSheet();buildBars();goList('apps');
 </script>
