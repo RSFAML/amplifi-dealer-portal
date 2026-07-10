@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amplifi Lending — Dealer Portal</title>
+<style>
+  :root{
+    --brand:#1670BE; --brand-dark:#0E4E86; --brand-050:#eef4fb; --brand-100:#dbe9f6;
+    --accent:#ED8A22; --accent-dark:#cf7715; --accent-050:#fdf2e3;
+    --ink:#1f2b3a; --muted:#6b7787; --line:#e6eaf0; --bg:#eef1f5; --card:#fff; --panel:#f7f9fc;
+    --ok:#1E9E62; --ok-bg:#e8f6ee; --bad:#c0392b; --bad-bg:#fdeee9; --warn:#c9812a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:13.5px}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:186px;background:#fff;border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:3px;z-index:30;overflow:auto}
+  .sidebar .brand{padding:2px 6px 10px}.sidebar .brand img{height:24px;display:block}
+  .backbtn{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:9px;color:var(--brand);font-weight:700;cursor:pointer;font-size:12.5px;background:var(--brand-050);border:1px solid var(--brand-100);margin-bottom:6px}
+  .appmeta{padding:6px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+  .appmeta .n{font-weight:800;font-size:13px}.appmeta .s{font-size:11px;color:var(--muted)}
+  .navitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--muted);font-weight:600;cursor:pointer;border:1px solid transparent;font-size:13px}
+  .navitem .ic{width:18px;text-align:center}
+  .navitem:hover{background:var(--panel);color:var(--ink)}
+  .navitem.active{background:var(--brand-050);color:var(--brand);border-color:var(--brand-100)}
+  .navlabel{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin:12px 8px 4px}
+  .appinfo{padding:2px 8px}
+  .appinfo .r{padding:5px 0;border-top:1px solid var(--line)}.appinfo .r:first-child{border-top:0}
+  .appinfo .k{color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.3px;display:block}
+  .appinfo .v{font-weight:600;font-size:12px}
+  .sidebar .foot{margin-top:auto;color:var(--muted);font-size:14px;padding:8px;display:flex;gap:8px}
+  .main{margin-left:186px;min-height:100vh}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:10px 22px}
+  .topbar h2{font-size:16px;margin:0;font-weight:800}
+  .topbar .tblogo{height:24px;margin-right:6px}
+  .topbar .att{color:var(--muted);font-size:12px;margin-left:auto}
+  .listnav{display:flex;gap:2px;flex-wrap:wrap}
+  .listnav button{background:transparent;border:0;padding:8px 12px;border-radius:8px;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer}
+  .listnav button:hover{background:var(--panel);color:var(--ink)}
+  .listnav button.on{background:var(--brand-050);color:var(--brand)}
+  .btn{border:0;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;cursor:pointer}
+  .btn.orange{background:var(--accent);color:#fff}.btn.blue{background:var(--brand);color:#fff}
+  .btn.outline{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
+  .btn.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+  .btn.sm{padding:6px 11px;font-size:12px}
+  .content{padding:18px 22px 96px}
+  .screen{display:none}.screen.active{display:block}
+  body.mode-list .sidebar{display:none}
+  body.mode-list .main{margin-left:0}
+  body.mode-list .att,body.mode-list .dealact,body.mode-list .dealtitle{display:none}
+  body.mode-deal .tblogo,body.mode-deal .listnav{display:none}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .tile .n{font-size:23px;font-weight:800;color:var(--brand)}.tile .l{color:var(--muted);font-size:12px;margin-top:2px}
+  .listtable{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  tbody tr.clk{cursor:pointer}tbody tr.clk:hover{background:var(--brand-050)}
+  tr:last-child td{border-bottom:0}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.warn{background:var(--accent-050);color:var(--accent-dark)}
+  .pill.bad{background:var(--bad-bg);color:var(--bad)}.pill.new{background:var(--brand-050);color:var(--brand)}.pill.fund{background:#e6f4ee;color:#0b6b45;border:1px solid #9fd6bd}
+  .dealhead{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
+  .dealhead .who{font-size:15px;font-weight:800}.dealhead .meta{color:var(--muted);font-size:12.5px}
+  .cols{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+  .card .hd{padding:12px 16px;border-bottom:1px solid var(--line);font-weight:800;font-size:12.5px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .card .bd{padding:8px 16px 14px}
+  .li{display:flex;align-items:center;justify-content:space-between;padding:8px 0;font-size:13px;border-top:1px solid var(--line)}
+  .li:first-child{border-top:0}.li .lbl{color:var(--muted)}.li .op{color:var(--muted);font-weight:700;margin-right:5px}
+  .inp{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;text-align:right;width:150px;background:#fff}
+  .inp:focus{outline:2px solid var(--brand-100);border-color:var(--brand)}
+  select.inp{text-align:left}
+  .li.total{border-top:2px solid var(--ink);font-weight:800}.li.total .lbl{color:var(--ink)}
+  .krow{display:flex;justify-content:space-between;padding:6px 0;font-size:13px}.krow .k{color:var(--muted)}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:9px 4px;font-weight:800;font-size:13px;cursor:pointer;color:var(--ink)}
+  .seg button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .terms th,.terms td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}
+  .terms th{color:var(--muted);font-size:11px;text-transform:uppercase;background:var(--panel)}
+  .terms tr:last-child td{border-bottom:0}.terms tr.sel td{background:var(--accent-050)}.terms tr.sel{outline:2px solid var(--accent);outline-offset:-2px}
+  .terms .apr{font-weight:800;color:var(--brand);font-size:15px}.terms .pay{font-weight:800;font-size:15px}
+  .sumrow{display:flex;justify-content:space-between;padding:9px 0;font-size:13px;border-top:1px solid var(--line)}
+  .sumrow:first-child{border-top:0}.sumrow.big{font-weight:800;font-size:15px}.sumrow .muted{color:var(--muted)}
+  .bu{background:var(--brand-050);border:1px solid var(--brand-100);border-radius:10px;padding:10px 12px}
+  .bu .r{display:flex;justify-content:space-between;padding:3px 0;font-size:12.5px}
+  .bu .r.head{font-weight:800;color:var(--brand-dark);border-top:1.5px solid var(--brand);margin-top:4px;padding-top:6px}.bu .minus{color:var(--ok);font-weight:700}
+  .part{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .part .p{border:1.5px solid var(--line);border-radius:10px;padding:9px;text-align:center;cursor:pointer}
+  .part .p.on{border-color:var(--accent);background:var(--accent-050)}
+  .part .p .amt{font-weight:800;color:var(--brand)}.part .p .l{font-size:10.5px;color:var(--muted)}
+  .card.rehash{border-color:#f3d3a8}
+  .card.rehash .hd{color:var(--accent-dark);background:linear-gradient(180deg,var(--accent-050),#fff)}
+  .slider{width:100%;-webkit-appearance:none;height:8px;border-radius:6px;background:var(--brand-100);outline:none}
+  .slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--brand);cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+  .slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--brand);cursor:pointer;border:3px solid #fff}
+  .tolbar{height:22px;border-radius:8px;background:#eef2f0;overflow:hidden;position:relative;margin-top:8px;border:1px solid var(--line)}
+  .tolbar>span{display:block;height:100%;transition:width .15s,background .15s}
+  .tolmark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+  .rmini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+  .rmini .m{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:center}
+  .rmini .m .n{font-weight:800;font-size:16px}.rmini .m .l{font-size:10px;color:var(--muted);text-transform:uppercase}
+  .statusbox{border-radius:10px;padding:10px 12px;font-weight:700;font-size:12.5px;margin-top:6px}
+  .statusbox.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #a8dcc0}
+  .statusbox.bad{background:var(--bad-bg);color:var(--bad);border:1px solid #f0c3ba}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .stickybar{position:fixed;left:186px;right:0;bottom:0;background:var(--ink);color:#fff;padding:11px 22px;display:none;align-items:center;gap:18px;z-index:25;flex-wrap:wrap}
+  .stickybar .big{font-size:17px;font-weight:800}.stickybar .lab{font-size:10px;color:#9fb4c6;text-transform:uppercase;letter-spacing:.3px}.stickybar .acc{color:var(--accent)}
+  .formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .fld label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:4px}
+  .fld input,.fld select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+  .task{display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--line)}
+  .task:first-child{border-top:0}
+  .task .ic{width:34px;height:34px;border-radius:9px;background:var(--panel);display:grid;place-items:center;color:var(--muted)}
+  .task .meta{flex:1}.task .meta .t{font-weight:700}.task .meta .d{font-size:12px;color:var(--muted)}
+  .chip{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:6px;background:var(--panel);color:var(--muted);border:1px solid var(--line)}
+  .chip.ok{background:var(--ok-bg);color:var(--ok);border-color:#a8dcc0}.chip.wait{background:var(--accent-050);color:var(--accent-dark);border-color:#f3d3a8}
+  .chip.post{background:var(--brand-050);color:var(--brand);border-color:var(--brand-100)}
+  .overlay{position:fixed;inset:0;background:rgba(20,30,45,.45);display:none;align-items:center;justify-content:center;z-index:50}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:16px;padding:22px;width:520px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
+  .modal h3{margin:0 0 3px}.modal .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .drop{border:2px dashed var(--brand-100);border-radius:12px;padding:26px;text-align:center;color:var(--muted);font-size:12.5px;background:var(--panel)}
+  .modrow{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  .cmp{width:100%;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:6px}
+  .cmp th,.cmp td{padding:8px 10px;font-size:12.5px;border-bottom:1px solid var(--line);text-align:right}
+  .cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--muted)}
+  .cmp thead th{background:var(--panel);text-align:right;font-size:11px;text-transform:uppercase}
+  .cmp tr:last-child td{border-bottom:0}
+  .phone{width:330px;background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+  .ph-top{background:linear-gradient(120deg,var(--brand-dark),var(--brand));color:#fff;padding:16px}
+  .ph-body{padding:16px}
+  .ph-hero{background:var(--brand);color:#fff;border-radius:12px;padding:14px;text-align:center;margin-bottom:12px}
+  .ph-hero .pay{font-size:30px;font-weight:900}
+  .ph-row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .ph-task{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .ph-task:last-child{border-bottom:0}
+  .ck{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff}
+  .ck.done{background:var(--ok)}.ck.pend{background:#cbd3dd}
+  .listitem{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+  .listitem:first-child{border-top:0}.listitem .d{color:var(--muted);font-size:12px}
+  .adbanner{background:linear-gradient(100deg,var(--brand),var(--brand-dark));color:#fff;border-radius:14px;padding:15px 18px;display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .adbanner .ic{font-size:24px}
+  .adbanner .txt{flex:1}.adbanner .txt .t{font-weight:800;font-size:14px}.adbanner .txt .s{font-size:12.5px;opacity:.92;margin-top:2px}
+  .adbanner .cta{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:9px 14px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .adbanner.sm{padding:12px 14px;margin:10px 0 0}
+  .chatlog{padding:14px 16px;display:flex;flex-direction:column;gap:10px;max-height:56vh;overflow:auto}
+  .msg{max-width:74%;padding:9px 12px;border-radius:12px;font-size:13px}
+  .msg .mh{font-size:10.5px;font-weight:800;margin-bottom:2px;opacity:.85}
+  .msg.them{background:var(--panel);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:3px}
+  .msg.me{background:var(--brand);color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+  .msg .mt{font-size:10px;opacity:.7;margin-top:3px;text-align:right}
+  .chatcompose{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+  .chatcompose input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+  .kpi .n{font-size:20px;font-weight:800;color:var(--brand)}.kpi .l{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .bars{display:flex;align-items:flex-end;gap:12px;height:170px;padding:6px 4px 24px}
+  .barcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;height:100%}
+  .barcol>span{width:70%;background:var(--brand);border-radius:6px 6px 0 0}
+  .barcol .bl{position:absolute;bottom:-20px;font-size:10.5px;color:var(--muted)}
+  .barcol .bv{font-size:10px;color:var(--muted);margin-bottom:3px}
+  #toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;opacity:0;transition:.3s;z-index:99}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* ---- generate-contract verify modal ---- */
+  .vstep{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+  .vhd{font-weight:800;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .vnum{width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+  .vchk{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:10px;font-weight:600;cursor:pointer}
+  .prod{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
+  .prod .ptop{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+  .dropz{border:2px dashed var(--brand-100);border-radius:8px;padding:14px;text-align:center;color:var(--muted);font-size:12px;background:var(--panel);cursor:pointer}
+  .dropz.drag{border-color:var(--brand);background:var(--brand-050);color:var(--brand)}
+  .dropz.done{border-style:solid;border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
+  .pverdict{font-size:12.5px;margin-top:8px;font-weight:700;color:var(--muted)}
+  .pverdict.ok{color:var(--ok)}.pverdict.bad{color:var(--bad)}.pverdict.loading{color:var(--brand)}
+  .ct-block{background:var(--bad-bg);border:1px solid #f0c3ba;color:var(--bad);border-radius:10px;padding:10px 12px;font-weight:700;font-size:12.5px;margin-top:10px}
+  .ct-block a{color:var(--bad);text-decoration:underline;cursor:pointer}
+  .pmeta{font-size:11.5px;color:var(--muted);margin-top:4px}
+  .ct-total{margin-top:10px;font-size:12.5px;font-weight:700;background:var(--brand-050);border:1px solid var(--brand-100);border-radius:8px;padding:8px 12px}
+  .ct-ok{background:var(--ok-bg);border:1px solid #a8dcc0;border-radius:12px;padding:16px}
+  .ct-ok .t{font-weight:800;color:var(--ok);font-size:15px;margin-bottom:6px}
+  .ct-ok ul{margin:6px 0 0;padding-left:18px} .ct-ok li{margin:4px 0;font-size:13px}
+  /* ---- mobile / responsive ---- */
+  @media (max-width:860px){
+    .sidebar{position:static;width:auto;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px;overflow:visible}
+    .sidebar .brand{padding:0;margin-right:4px}
+    .sidebar .brand img{height:22px}
+    .appmeta,.navlabel,.appinfo,.sidebar .foot{display:none}
+    .backbtn{margin:0}
+    .main{margin-left:0 !important}
+    .content{padding:14px 14px 40px}
+    .cols,.headcards,.formgrid{grid-template-columns:1fr}
+    .tiles,.kpis,.metrics{grid-template-columns:repeat(2,1fr)}
+    .part{grid-template-columns:1fr 1fr 1fr}
+    .phone{width:100%}
+    .li .inp{width:46%}
+    table{display:block;overflow-x:auto;white-space:nowrap}
+    .stickybar{position:static;margin-top:14px}
+    .topbar{flex-wrap:wrap;gap:6px;padding:10px 14px}
+    .listnav{width:100%;overflow-x:auto;flex-wrap:nowrap}
+    .dealhead{flex-wrap:wrap}
+    .adbanner{flex-direction:column;align-items:flex-start;gap:8px}
+    .modal{padding:16px}
+  }
+  @media (max-width:480px){
+    .tiles,.kpis,.metrics{grid-template-columns:1fr}
+    .part{grid-template-columns:1fr}
+    .rmini{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body class="mode-list">
+<aside class="sidebar">
+  <div class="brand"><img src="https://img1.wsimg.com/isteam/ip/af12b20a-b848-4d7b-be01-0ab358dfd9f4/Amplifi%20Lending%20Logo_horz_fullcolor.png/:/rs=w:1200/qt=q:95" alt="Amplifi Lending"></div>
+  <div class="backbtn" onclick="showList()">← Applications</div>
+  <div class="appmeta"><div class="n" id="sb_name">—</div><div class="s" id="sb_id">—</div></div>
+  <div class="navitem active" data-screen="deal"><span class="ic">$</span> Deal Structure</div>
+  <div class="navitem" data-screen="collateral"><span class="ic">⛨</span> Collateral</div>
+  <div class="navitem" data-screen="applicant"><span class="ic">👤</span> Applicant Information</div>
+  <div class="navitem" data-screen="tasks"><span class="ic">▤</span> Tasks</div>
+  <div class="navitem" data-screen="portal"><span class="ic">▢</span> Customer Portal</div>
+  <div class="navitem" data-screen="chat"><span class="ic">💬</span> Chat</div>
+  <div class="foot"><span>☀</span><span>☾</span></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <img class="tblogo" src="https://img1.wsimg.com/isteam/ip/af12b20a-b848-4d7b-be01-0ab358dfd9f4/Amplifi%20Lending%20Logo_horz_fullcolor.png/:/rs=w:1200/qt=q:95" alt="Amplifi Lending">
+    <nav class="listnav">
+      <button data-list="apps" class="on" onclick="goList('apps')">Applications</button>
+      <button data-list="reporting" onclick="goList('reporting')">Reporting</button>
+      <button data-list="funding" onclick="goList('funding')">Funding</button>
+      <button data-list="ratesheet" onclick="goList('ratesheet')">Rate Sheet</button>
+      <button data-list="resources" onclick="goList('resources')">Resources</button>
+      <button data-list="support" onclick="goList('support')">Support</button>
+    </nav>
+    <h2 class="dealtitle" id="pagetitle" style="display:none"></h2>
+    <span class="att dealact" id="attempts">2 re-decisions left</span>
+    <button class="btn ghost sm dealact" onclick="resetDeal()">↺ Reset</button>
+    <button class="btn outline sm dealact" onclick="go('portal')">Send Customer Portal</button>
+    <button class="btn orange sm dealact" onclick="openContract()">Generate Contract →</button>
+  </div>
+
+  <div class="content">
+    <!-- APPLICATIONS -->
+    <section class="screen active" id="s_apps">
+      <div class="tiles" style="grid-template-columns:repeat(3,1fr)">
+        <div class="tile"><div class="n">18</div><div class="l">Open applications</div></div>
+        <div class="tile"><div class="n">8</div><div class="l">Approved applications</div></div>
+        <div class="tile"><div class="n">$1.24M</div><div class="l">Funded deals (this month)</div></div>
+      </div>
+      <div class="listtable">
+        <table><thead><tr><th>Application</th><th>Buyer</th><th>Unit</th><th>Amount</th><th>Status</th><th>Score</th><th>Rep</th><th>Age</th></tr></thead>
+        <tbody id="appsbody"></tbody></table>
+      </div>
+    </section>
+
+    <!-- REPORTING -->
+    <section class="screen" id="s_reporting">
+      <div class="kpis">
+        <div class="kpi"><div class="n">$1.24M</div><div class="l">Funded this month</div></div>
+        <div class="kpi"><div class="n">71%</div><div class="l">Approval rate</div></div>
+        <div class="kpi"><div class="n">42%</div><div class="l">Look-to-book</div></div>
+        <div class="kpi"><div class="n">$76.4K</div><div class="l">Avg amount financed</div></div>
+        <div class="kpi"><div class="n">2.3</div><div class="l">F&amp;I products / deal</div></div>
+        <div class="kpi"><div class="n">$2,180</div><div class="l">Avg dealer reserve</div></div>
+        <div class="kpi"><div class="n">733</div><div class="l">Avg approved score</div></div>
+        <div class="kpi"><div class="n">6.1 hrs</div><div class="l">Avg time to decision</div></div>
+      </div>
+      <div class="cols">
+        <div class="card"><div class="hd">Funded volume — last 7 months</div><div class="bd"><div class="bars" id="bars"></div></div></div>
+        <div class="card"><div class="hd">Production by rep</div><div class="bd" style="padding:0">
+          <table><thead><tr><th>Rep</th><th>Apps</th><th>Funded</th><th>Volume</th></tr></thead><tbody>
+            <tr><td>Tammy C.</td><td>11</td><td>7</td><td>$612K</td></tr>
+            <tr><td>Ken B.</td><td>7</td><td>5</td><td>$486K</td></tr>
+            <tr><td>House</td><td>3</td><td>2</td><td>$142K</td></tr>
+          </tbody></table>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- FUNDING -->
+    <section class="screen" id="s_funding">
+      <div class="card"><div class="hd">Approved · awaiting funding</div><div class="bd" style="padding:0">
+        <table><thead><tr><th>Application</th><th>Buyer</th><th>Amount</th><th>Stips</th><th>Status</th></tr></thead><tbody>
+          <tr><td>#A-1042</td><td>Dan &amp; Marie Foss</td><td>$71,618</td><td>2 of 4 cleared</td><td><span class="pill warn">Docs out</span></td></tr>
+          <tr><td>#A-1036</td><td>Priya Shah</td><td>$58,900</td><td>1 of 4 cleared</td><td><span class="pill bad">Conditioned</span></td></tr>
+        </tbody></table>
+      </div></div>
+      <div class="card"><div class="hd">Funded this month</div><div class="bd" style="padding:0">
+        <table><thead><tr><th>Application</th><th>Buyer</th><th>Amount</th><th>Funded</th><th>Reserve</th></tr></thead><tbody>
+          <tr><td>#A-1018</td><td>Greg &amp; Sue Palmer</td><td>$83,240</td><td>Jun 28</td><td>$2,497</td></tr>
+        </tbody></table>
+      </div></div>
+    </section>
+
+    <!-- RATE SHEET -->
+    <section class="screen" id="s_ratesheet">
+      <div class="card"><div class="hd"><span>Amplifi RV Rate Card v2 — standard buy rates @ 240-mo</span><button class="btn outline sm" onclick="downloadRateCard()">⬇ Download rate card</button></div><div class="bd" style="padding:0">
+        <table class="terms"><thead><tr><th>Tier</th><th>FICO</th><th>Max LTV</th><th>Max loan</th><th>0–5%</th><th>10%</th><th>20%</th><th>25%</th></tr></thead><tbody id="rsbody"></tbody></table>
+      </div></div>
+      <div class="cols">
+        <div class="card"><div class="hd">Term adjustments</div><div class="bd">
+          <div class="li"><span class="lbl">240 months</span><b>Base</b></div>
+          <div class="li"><span class="lbl">180 months</span><b>−0.25%</b></div>
+          <div class="li"><span class="lbl">144 months</span><b>−0.50%</b></div>
+        </div></div>
+        <div class="card"><div class="hd">Dealer participation</div><div class="bd">
+          <div class="li"><span class="lbl">Buy rate</span><b>Prime 1% / Near-prime 1%</b></div>
+          <div class="li"><span class="lbl">+0.50% markup</span><b>Prime 2% / Near-prime 1.5%</b></div>
+          <div class="li"><span class="lbl">+1.00% markup</span><b>Prime 3% / Near-prime 2%</b></div>
+          <div class="hint">Each down-payment band right = −0.25%. Min score 660, both applicants ≥ 660. Min financed $15,000.</div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- RESOURCES -->
+    <section class="screen" id="s_resources">
+      <div class="adbanner"><div class="ic">🎬</div><div class="txt"><div class="t">Want to menu your back-end products to consumers?</div><div class="s">Turn GAP, service contracts, tire &amp; wheel and more into a digital menu inside the customer portal.</div></div><button class="cta" onclick="toast('Thanks! Your Amplifi rep will reach out about consumer F&I menuing.')">Ask our team how</button></div>
+      <div class="cols">
+        <div class="card"><div class="hd">Dealer Success — training</div><div class="bd">
+          <p style="margin:0 0 10px;color:var(--muted);font-size:12.5px">Book a live session with your Dealer Success team — onboarding, deal structuring, or portal training.</p>
+          <button class="btn blue sm" onclick="openSched()">📅 Schedule a training meeting</button>
+        </div></div>
+        <div class="card"><div class="hd">Training &amp; walk-throughs</div><div class="bd">
+          <div class="listitem"><span>📘</span><div><b>Deal Structure &amp; Rehash guide</b><div class="d">Structure, rehash within tolerance, and change collateral.</div></div></div>
+          <div class="listitem"><span>🎥</span><div><b>Customer Portal walk-through</b><div class="d">Sending the portal, Plaid, POR, e-sign.</div></div></div>
+          <div class="listitem"><span>⛨</span><div><b>Collateral &amp; valuation</b><div class="d">MSRP vs NADA / J.D. Power, LTV tolerance.</div></div></div>
+        </div></div>
+      </div>
+      <div class="card"><div class="hd">Program documents</div><div class="bd">
+        <div class="listitem"><span>📄</span><div><b>Rate Card v2</b><div class="d">Effective 7/1/2026 — download from the Rate Sheet tab.</div></div></div>
+        <div class="listitem"><span>📄</span><div><b>Dealer agreement &amp; participation</b></div></div>
+        <div class="listitem"><span>📄</span><div><b>Stipulation checklist</b></div></div>
+      </div></div>
+    </section>
+
+    <!-- SUPPORT -->
+    <section class="screen" id="s_support">
+      <div class="cols">
+        <div class="card"><div class="hd">Contact Amplifi</div><div class="bd">
+          <div class="krow"><span class="k">Dealer support</span><b>(682) 688-4007</b></div>
+          <div class="krow"><span class="k">Underwriting</span><b>underwriting@amplifilending.com</b></div>
+          <div class="krow"><span class="k">Funding</span><b>funding@amplifilending.com</b></div>
+          <div class="krow"><span class="k">Hours</span><b>Monday–Saturday · 9:00 AM–6:00 PM CST</b></div>
+        </div></div>
+        <div class="card"><div class="hd">Your Amplifi team</div><div class="bd">
+          <div class="listitem"><span>👤</span><div><b>Dealer Success Manager</b><div class="d">Training &amp; onboarding — schedule from Resources.</div></div></div>
+          <div class="listitem"><span>👤</span><div><b>Underwriting desk</b><div class="d">Deal questions &amp; exceptions — use the Chat tab inside a deal.</div></div></div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- DEAL STRUCTURE -->
+    <section class="screen" id="s_deal">
+      <div class="dealhead"><span class="who" id="dh_name">—</span><span class="meta" id="dh_meta">—</span><span id="dh_status"></span></div>
+      <div class="cols">
+        <div>
+          <div class="card"><div class="hd">Application</div><div class="bd">
+            <div class="krow"><span class="k">Application #</span><b id="ap_id">—</b></div>
+            <div class="krow"><span class="k">Applicant</span><b id="ap_name">—</b></div>
+          </div></div>
+          <div class="card"><div class="hd">Credit decision — the score we based this on</div><div class="bd">
+            <div class="li"><span class="lbl">Applicant score 🔒</span><b id="cd_app">—</b></div>
+            <div class="li"><span class="lbl">Co-applicant score 🔒</span><b id="cd_co">—</b></div>
+            <div class="li"><span class="lbl">Averaged Vantage 4.0</span><b id="cd_avg" style="color:var(--brand)">—</b></div>
+            <div class="li"><span class="lbl">Approved tier</span><b id="cd_tier">—</b></div>
+            <div class="li"><span class="lbl">Approved envelope</span><b id="cd_env" style="font-weight:600;color:var(--muted)">—</b></div>
+          </div></div>
+          <div class="card"><div class="hd">Term</div><div class="bd">
+            <div class="seg" id="segterm"><button data-t="144">144 mo</button><button data-t="180" class="on">180 mo</button><button data-t="240">240 mo</button></div>
+          </div></div>
+          <div class="card"><div class="hd">Collateral — front-end structure</div><div class="bd">
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Sales price</span><input class="inp" id="i_price" type="number"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Sales tax</span><input class="inp" id="i_tax" type="number" value="0"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Doc fee</span><input class="inp" id="i_doc" type="number" value="799"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Title &amp; license</span><input class="inp" id="i_tl" type="number" value="425"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Trade allowance</span><input class="inp" id="i_trade" type="number" value="12000"></div>
+            <div class="li"><span class="lbl"><span class="op">(−)</span>Trade payoff</span><input class="inp" id="i_payoff" type="number" value="4500"></div>
+            <div class="li"><span class="lbl"><span class="op">(−)</span>Cash down</span><input class="inp" id="i_down" type="number" value="9000"></div>
+            <div class="li total"><span class="lbl">Net trade</span><b id="o_nettrade">—</b></div>
+            <div class="li total"><span class="lbl">Total down (cash + trade equity)</span><b id="o_totaldown">—</b></div>
+          </div></div>
+          <div class="card"><div class="hd">Back end — F&amp;I products</div><div class="bd">
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Extended service contract</span><input class="inp" id="fi_esc" type="number" value="3200"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>GAP</span><input class="inp" id="fi_gap" type="number" value="895"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Road hazard</span><input class="inp" id="fi_road" type="number" value="0"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Tire &amp; wheel</span><input class="inp" id="fi_tw" type="number" value="799"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Anti-theft</span><input class="inp" id="fi_theft" type="number" value="0"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>ESC — roof</span><input class="inp" id="fi_roof" type="number" value="0"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Key fob replacement</span><input class="inp" id="fi_fob" type="number" value="0"></div>
+            <div class="li"><span class="lbl"><span class="op">(+)</span>Paint &amp; fabrication</span><input class="inp" id="fi_paint" type="number" value="0"></div>
+            <div class="li total"><span class="lbl">Total back end</span><b id="o_backend">—</b></div>
+            <div class="adbanner sm"><div class="ic">🛍️</div><div class="txt"><div class="t">Want to menu your back-end products to consumers?</div><div class="s">Let buyers review &amp; select these in the customer portal.</div></div><button class="cta" onclick="toast('Thanks! Your Amplifi rep will reach out about consumer F&I menuing.')">Ask our team how</button></div>
+          </div></div>
+        </div>
+        <div>
+          <div class="card"><div class="hd">Compare terms — payment updates live</div><div class="bd" style="padding:0 0 4px">
+            <table class="terms"><thead><tr><th>Term</th><th>Customer APR</th><th>Monthly payment</th><th></th></tr></thead><tbody id="termsbody"></tbody></table>
+          </div></div>
+          <div class="card"><div class="hd">Rate build-up — what the decision is based on</div><div class="bd"><div class="bu" id="bu"></div></div></div>
+          <div class="card"><div class="hd">Dealer participation — mark up the buy rate</div><div class="bd">
+            <div class="part" id="part">
+              <div class="p on" data-mk="0"><div class="amt" id="rv0">—</div><div class="l">Buy rate</div></div>
+              <div class="p" data-mk="0.005"><div class="amt" id="rv1">—</div><div class="l">+50 bps</div></div>
+              <div class="p" data-mk="0.01"><div class="amt" id="rv2">—</div><div class="l">+100 bps</div></div>
+            </div>
+            <div class="hint"><b>Prime (T1–3):</b> buy rate pays 1% · +50 bps pays 2% · +100 bps pays 3%.<br><b>Near-prime (T4–5):</b> buy rate pays 1% · +50 bps pays 1.5% · +100 bps pays 2%. Reserve = participation % × amount financed.</div>
+          </div></div>
+          <div class="card rehash"><div class="hd">⟳ Rehash</div><div class="bd">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>Down payment</span><span><b id="rh_downamt" style="color:var(--ink)">—</b> · <b id="rh_downpct" style="color:var(--brand)">—</b></span></div>
+            <input type="range" min="0" max="40" step="0.5" value="10" class="slider" id="rh_slider" oninput="rehashSlide(this.value)">
+            <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:3px"><span>0%</span><span>10%</span><span>20%</span><span>25%</span><span>40%</span></div>
+            <div class="rmini">
+              <div class="m"><div class="n" id="rh_rate" style="color:var(--brand)">—</div><div class="l">APR</div></div>
+              <div class="m"><div class="n" id="rh_pay">—</div><div class="l">Payment</div></div>
+              <div class="m"><div class="n" id="rh_ltv">—</div><div class="l">LTV</div></div>
+            </div>
+            <div style="font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between"><span>LTV vs approved tolerance</span><span id="rh_ltvcap">—</span></div>
+            <div class="tolbar"><span id="rh_tolfill"></span><div class="tolmark" id="rh_tolmark"></div></div>
+            <div class="statusbox ok" id="rh_status">—</div>
+            <div class="hint">Adjust the down payment (or change collateral on the Collateral tab) to keep the deal within the approved advance and the tier's max loan.</div>
+          </div></div>
+          <div class="card"><div class="hd">Summary</div><div class="bd">
+            <div class="sumrow big"><span>Amount financed</span><span id="sm_amt">—</span></div>
+            <div class="sumrow"><span class="muted">Customer APR</span><span id="sm_apr">—</span></div>
+            <div class="sumrow"><span class="muted">Buy rate (decision basis)</span><span id="sm_buy">—</span></div>
+            <div class="sumrow"><span class="muted">LTV / advance</span><span id="sm_ltv">—</span></div>
+            <div class="sumrow"><span class="muted">Dealer reserve</span><span id="sm_res">—</span></div>
+            <div class="sumrow"><span class="muted">Down payment</span><span id="sm_down">—</span></div>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLLATERAL -->
+    <section class="screen" id="s_collateral">
+      <div class="dealhead"><span class="who">Collateral</span><span class="meta">Current unit &amp; trade on this deal</span><span style="margin-left:auto"></span><button class="btn orange sm" onclick="openChangeColl()">⛨ Change collateral</button></div>
+      <div class="cols">
+        <div class="card"><div class="hd">Current unit</div><div class="bd">
+          <div class="krow"><span class="k">Unit</span><b id="cu_name">—</b></div>
+          <div class="krow"><span class="k">Condition</span><b id="cu_cond">—</b></div>
+          <div class="krow"><span class="k">Type</span><b id="cu_type">—</b></div>
+          <div class="krow"><span class="k">Year / Make / Model</span><b id="cu_ymm">—</b></div>
+          <div class="krow"><span class="k">VIN</span><b id="cu_vin">—</b></div>
+          <div class="krow"><span class="k">Mileage / hours</span><b id="cu_miles">—</b></div>
+          <div class="krow"><span class="k">Sales price</span><b id="cu_price">—</b></div>
+          <div class="krow"><span class="k">Base value (NADA / J.D. Power)</span><b id="cu_val">—</b></div>
+          <div class="krow"><span class="k">Advance basis</span><b id="cu_basis">—</b></div>
+          <div class="krow"><span class="k">Advance base used</span><b id="cu_base">—</b></div>
+          <div class="krow"><span class="k">Max advance (tier LTV)</span><b id="cu_max">—</b></div>
+          <div class="krow"><span class="k">Current LTV</span><b id="cu_ltv">—</b></div>
+        </div></div>
+        <div class="card"><div class="hd">Trade-in <span style="font-weight:600;color:var(--muted);font-size:11px">(edit on Deal Structure)</span></div><div class="bd">
+          <div class="krow"><span class="k">VIN</span><b id="ct_vin">—</b></div>
+          <div class="krow"><span class="k">Year</span><b id="ct_year">—</b></div>
+          <div class="krow"><span class="k">Make</span><b id="ct_make">—</b></div>
+          <div class="krow"><span class="k">Model</span><b id="ct_model">—</b></div>
+          <div class="krow"><span class="k">Trade allowance</span><b id="ct_allow">—</b></div>
+          <div class="krow"><span class="k">Trade payoff</span><b id="ct_payoff">—</b></div>
+          <div class="krow"><span class="k">Net trade equity</span><b id="ct_net">—</b></div>
+          <div class="hint">Trade values are entered on the Deal Structure tab to keep one source of truth. Shown here for reference.</div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- APPLICANT INFORMATION -->
+    <section class="screen" id="s_applicant">
+      <div class="dealhead"><span class="who">Applicant Information</span><span class="meta">From the credit application</span></div>
+      <div class="cols">
+        <div class="card"><div class="hd">Primary applicant</div><div class="bd" id="pa_body"></div></div>
+        <div class="card"><div class="hd">Co-applicant</div><div class="bd" id="co_body"></div></div>
+      </div>
+      <div class="hint" style="margin-top:2px">Social Security number and date of birth are collected on the secure application and are not displayed here.</div>
+    </section>
+
+    <!-- TASKS -->
+    <section class="screen" id="s_tasks">
+      <div class="dealhead"><span class="who">Tasks &amp; documents</span></div>
+      <div class="card"><div id="tasklist"></div></div>
+    </section>
+
+    <!-- CHAT -->
+    <section class="screen" id="s_chat">
+      <div class="dealhead"><span class="who">Chat</span><span class="meta">Conversation with Amplifi Lending underwriting &amp; funding</span></div>
+      <div class="card"><div class="chatlog" id="chatlog"></div>
+        <div class="chatcompose"><input id="chatinput" placeholder="Message Amplifi underwriting…" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn blue sm" onclick="sendChat()">Send</button></div>
+      </div>
+    </section>
+
+    <!-- CUSTOMER PORTAL -->
+    <section class="screen" id="s_portal">
+      <div class="dealhead"><span class="who">Customer Portal</span><span class="meta">What the buyer sees when you send the link — mirrors the live deal</span></div>
+      <div class="adbanner"><div class="ic">🛍️</div><div class="txt"><div class="t">Want to menu your back-end products to consumers?</div><div class="s">Present GAP, service contracts, tire &amp; wheel and more as a digital menu right here in the customer portal.</div></div><button class="cta" onclick="toast('Thanks! Your Amplifi rep will reach out about consumer F&I menuing.')">Ask our team how</button></div>
+      <div class="cols">
+        <div class="card"><div class="hd">Buyer preview</div><div class="bd" style="display:flex;justify-content:center">
+          <div class="phone">
+            <div class="ph-top"><b>Amplifi Lending</b><div style="font-size:11.5px;opacity:.9;margin-top:2px" id="cp_hi">Hi 👋</div></div>
+            <div class="ph-body">
+              <div class="ph-hero"><div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.4px">Estimated payment</div><div class="pay" id="cp_pay">—</div><div style="font-size:11.5px;opacity:.95"><span id="cp_apr">—</span> APR · <span id="cp_term">—</span></div></div>
+              <div class="ph-row"><span>Vehicle</span><b id="cp_unit">—</b></div>
+              <div class="ph-row"><span>Amount financed</span><b id="cp_amt">—</b></div>
+              <div class="ph-task"><div class="ck done">✓</div><div style="flex:1"><div style="font-weight:700;font-size:12.5px">Connect bank (Plaid)</div><div style="font-size:11px;color:var(--muted)">Verified</div></div></div>
+              <div class="ph-task"><div class="ck pend"></div><div style="flex:1"><div style="font-weight:700;font-size:12.5px">Proof of residence</div><div style="font-size:11px;color:var(--muted)">If needed</div></div></div>
+              <div class="ph-task"><div class="ck pend"></div><div style="flex:1"><div style="font-weight:700;font-size:12.5px">Verify ID (driver's license)</div><div style="font-size:11px;color:var(--muted)">Or dealer uploads it</div></div></div>
+            </div>
+          </div>
+        </div></div>
+        <div>
+          <div class="card"><div class="hd">Send the portal</div><div class="bd">
+            <div class="fld" style="margin-bottom:10px"><label>Mobile</label><input value="(540) 555-0192"></div>
+            <div class="fld" style="margin-bottom:10px"><label>Email</label><input value="buyer@email.com"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn orange sm" onclick="toast('Portal link texted to buyer ✅')">Text link 📲</button><button class="btn outline sm" onclick="toast('Portal link emailed ✅')">Email link</button><button class="btn ghost sm" onclick="toast('Link copied 🔗')">Copy link</button></div>
+          </div></div>
+          <div class="card"><div class="hd">What the customer portal shows</div><div class="bd">
+            <div class="listitem"><span>💳</span><div><b>Live offer &amp; monthly payment</b><div class="d">Mirrors Deal Structure — payment, APR, term, amount financed update automatically.</div></div></div>
+            <div class="listitem"><span>🏦</span><div><b>Plaid bank connection</b><div class="d">Buyer securely links their bank for income/asset verification.</div></div></div>
+            <div class="listitem"><span>🏠</span><div><b>Proof of residence (POR)</b><div class="d">Upload a utility bill or lease from their phone — only if requested.</div></div></div>
+            <div class="listitem"><span>🪪</span><div><b>ID verification (driver's license)</b><div class="d">Buyer scans their license — or the dealership uploads it for them.</div></div></div>
+            <div class="listitem"><span>✍️</span><div><b>Review &amp; e-sign documents</b><div class="d">Contract package unlocks once stipulations are cleared.</div></div></div>
+            <div class="listitem"><span>💬</span><div><b>Secure two-way messaging</b><div class="d">Buyer ↔ dealer communication thread.</div></div></div>
+          </div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="stickybar" id="stickybar">
+  <div><div class="lab">Amount financed</div><div class="big" id="b_amt">—</div></div>
+  <div><div class="lab">Down payment</div><div class="big" id="b_down">—</div></div>
+  <div><div class="lab">Term</div><div class="big" id="b_term">—</div></div>
+  <div><div class="lab">Customer APR</div><div class="big acc" id="b_apr">—</div></div>
+  <div><div class="lab">Monthly payment</div><div class="big" id="b_pay">—</div></div>
+  <div><div class="lab">LTV</div><div class="big" id="b_ltv">—</div></div>
+  <div><div class="lab">Reserve</div><div class="big" id="b_res">—</div></div>
+  <div style="flex:1"></div>
+  <button class="btn outline sm" style="background:transparent;color:#fff;border-color:#fff" onclick="go('portal')">Send Customer Portal</button>
+  <button class="btn orange sm" onclick="openContract()">Generate Contract →</button>
+</div>
+
+<div class="overlay" id="ov_coll"><div class="modal" style="width:660px">
+  <h3>Change collateral</h3><p class="sub">Enter the new unit. New units price on MSRP; used units pull NADA / J.D. Power Avg Retail. Then compare with the current structure before accepting.</p>
+  <div class="formgrid">
+    <div class="fld"><label>Condition</label><select id="nc_cond" onchange="ncCond()"><option value="new">New</option><option value="used">Used</option></select></div>
+    <div class="fld"><label>Unit type</label><select id="nc_type"><option>Travel Trailer</option><option>Fifth Wheel</option><option>Toy Hauler</option><option>Class A</option><option>Class B</option><option>Class C</option><option>Boat</option></select></div>
+    <div class="fld"><label>Year</label><input id="nc_year" placeholder="2025"></div>
+    <div class="fld"><label>Make</label><input id="nc_make" placeholder="Grand Design"></div>
+    <div class="fld"><label>Model</label><input id="nc_model" placeholder="Solitude 310GK"></div>
+    <div class="fld"><label>Sales price</label><input id="nc_price" type="number" placeholder="0" oninput="ncAuto()"></div>
+    <div class="fld" id="nc_msrpwrap"><label>MSRP</label><input id="nc_msrp" type="number" placeholder="0"></div>
+    <div class="fld" id="nc_jdwrap" style="display:none"><label>NADA / J.D. Power Avg Retail</label><div style="display:flex;gap:6px"><input id="nc_jd" type="number" placeholder="—" style="flex:1"><button class="btn ghost sm" onclick="pullJD()">Pull NADA / J.D. Power</button></div></div>
+  </div>
+  <div style="margin-top:12px"><button class="btn blue sm" onclick="compareColl()">Compare with current structure →</button></div>
+  <div id="nc_compare"></div>
+  <div class="modrow"><button class="btn ghost sm" onclick="closeOv('ov_coll')">Cancel</button><button class="btn orange sm" id="nc_accept" style="display:none" onclick="acceptColl()">Accept new collateral</button></div>
+</div></div>
+
+<div class="overlay" id="ov_sched"><div class="modal">
+  <h3>Schedule training with Dealer Success</h3><p class="sub">Pick a topic, date, and time — our Dealer Success team will confirm by email.</p>
+  <div class="fld" style="margin-bottom:10px"><label>Topic</label><select id="sc_topic"><option>Portal onboarding</option><option>Deal structuring &amp; rehash</option><option>Customer portal &amp; e-sign</option><option>Rate card &amp; pricing</option><option>F&amp;I menuing to consumers</option></select></div>
+  <div class="formgrid"><div class="fld"><label>Date</label><input id="sc_date" type="date"></div><div class="fld"><label>Time (CST)</label><select id="sc_time"><option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option><option>1:00 PM</option><option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option></select></div></div>
+  <div class="modrow"><button class="btn ghost sm" onclick="closeOv('ov_sched')">Cancel</button><button class="btn orange sm" onclick="schedDone()">Request meeting</button></div>
+</div></div>
+
+<div class="overlay" id="ov_upload"><div class="modal">
+  <h3 id="up_title">Upload document</h3><p class="sub">Select the document type and upload one file.</p>
+  <div class="fld"><label>Document type</label><select id="up_type" class="inp" style="width:100%;text-align:left"></select></div>
+  <div class="drop" style="margin-top:12px">⬆<br>Drag &amp; drop your file here or click to browse<br><span style="font-size:11px">(pdf, doc, jpg, png, xlsx)</span></div>
+  <div class="modrow"><button class="btn ghost sm" onclick="closeOv('ov_upload')">Cancel</button><button class="btn orange sm" onclick="uploadDone()">Upload Document</button></div>
+</div></div>
+
+<div class="overlay" id="ov_contract"><div class="modal" style="width:740px">
+  <div id="ct_form">
+    <h3>Generate Contract — verify before documents</h3><p class="sub">Confirm the deal, drop the back-end forms for the AI to read, then generate.</p>
+    <div class="vstep">
+      <div class="vhd"><span class="vnum">1</span> Verify deal structure</div>
+      <div id="ct_dealsum"></div>
+      <label class="vchk"><input type="checkbox" id="ct_dealok" onchange="ctGate()"> Deal structure is correct</label>
+    </div>
+    <div class="vstep" id="ct_msrpstep">
+      <div class="vhd"><span class="vnum">2</span> Verify MSRP — new unit</div>
+      <div id="ct_msrpline"></div>
+      <label class="vchk"><input type="checkbox" id="ct_msrpok" onchange="ctGate()"> MSRP matches</label>
+    </div>
+    <div class="vstep" id="ct_bestep">
+      <div class="vhd"><span class="vnum">3</span> Back-end product forms &amp; AI reader</div>
+      <div class="hint" style="margin-top:0">Drop all back-end forms in one box — the AI identifies each product, checks cancellability, and appends them to the contract package.</div>
+      <div class="dropz" id="ct_drop">⬆ Drag &amp; drop all back-end product forms here (PDF) — or click to browse</div>
+      <div id="ct_results"></div>
+      <div id="ct_total"></div>
+      <div id="ct_ai_summary"></div>
+    </div>
+    <div class="modrow"><button class="btn ghost sm" onclick="closeOv('ov_contract')">Cancel</button><button class="btn orange sm" id="ct_gen" onclick="ctGenerate()" disabled>Generate contract documents</button></div>
+  </div>
+  <div id="ct_success" style="display:none"></div>
+</div></div>
+
+<div id="toast"></div>
+
+<script>
+const CARD={
+  1:{fico:'780+',min:780,maxLTV:1.15,maxLoan:300000,prime:true, minDown:0,    rates:{'0':.0799,'10':.0774,'20':.0749,'25':.0724}},
+  2:{fico:'740-779',min:740,maxLTV:1.10,maxLoan:300000,prime:true, minDown:0,    rates:{'0':.0899,'10':.0874,'20':.0849,'25':.0824}},
+  3:{fico:'700-739',min:700,maxLTV:1.05,maxLoan:250000,prime:true, minDown:0.05, rates:{'0':.0999,'10':.0974,'20':.0949,'25':.0924}},
+  4:{fico:'680-699',min:680,maxLTV:0.95,maxLoan:200000,prime:false,minDown:0.10, rates:{'10':.1399,'20':.1374,'25':.1349}},
+  5:{fico:'660-679',min:660,maxLTV:0.90,maxLoan:150000,prime:false,minDown:0.10, rates:{'10':.1499,'20':.1474,'25':.1449}}
+};
+const TERM_ADJ={144:-0.0050,180:-0.0025,240:0};
+const BANDS=[{k:'25',min:.25},{k:'20',min:.20},{k:'10',min:.10},{k:'0',min:0}];
+const UNITS={
+  gd:{name:'2025 Grand Design Reflection',type:'Fifth Wheel',cond:'new',year:'2025',make:'Grand Design',model:'Reflection 310RLS',msrp:82000,value:79900,vin:'573FB3128P5001042',miles:'—'},
+  wv:{name:'2024 Winnebago View',type:'Class C',cond:'new',year:'2024',make:'Winnebago',model:'View 24D',msrp:142000,value:138500,vin:'W1X8E33Y6NN112233',miles:'1,250 mi'},
+  air:{name:'2026 Airstream Bambi',type:'Travel Trailer',cond:'new',year:'2026',make:'Airstream',model:'Bambi 22FB',msrp:61200,value:60400,vin:'1STGWA28XR1450099',miles:'—'},
+  thor:{name:'2025 Thor Aria',type:'Class A',cond:'new',year:'2025',make:'Thor',model:'Aria 3401',msrp:298500,value:291000,vin:'1F66F5DN9P0A11002',miles:'—'},
+  mont:{name:'2024 Keystone Montana',type:'Fifth Wheel',cond:'new',year:'2024',make:'Keystone',model:'Montana 3781RL',msrp:89750,value:87500,vin:'4YDF37820RM998877',miles:'—'},
+  jay:{name:'2023 Jayco Jay Flight (Used)',type:'Travel Trailer',cond:'used',year:'2023',make:'Jayco',model:'Jay Flight 267BHS',msrp:33900,value:31000,vin:'1UJBJ0BN3P17X0456',miles:'—'}
+};
+const APPS=[
+  {id:'A-1042',name:'Dan & Marie Foss',pName:'Dan Foss',unit:'gd',app:782,co:784,income:8500,status:'Approved',cls:'ok',rep:'Tammy C.',age:'2h',addr:'118 Ridgeway Dr, Roanoke, VA 24011',emp:'Carilion Clinic',job:'Registered Nurse',phone:'(540) 555-0192',email:'dan.foss@email.com',housing:'Own · $1,850/mo',joint:true,coName:'Marie Foss',coAddr:'118 Ridgeway Dr, Roanoke, VA 24011',coPhone:'(540) 555-0193',coEmail:'marie.foss@email.com',coEmp:'Roanoke County Schools',coJob:'Teacher',coIncome:4200,trVin:'4X4TSMB25JA012345',trYear:'2018',trMake:'Forest River',trModel:'Salem 27RKSS'},
+  {id:'A-1039',name:'Luis Ortega',pName:'Luis Ortega',unit:'wv',app:726,co:726,income:11000,status:'Submitted',cls:'warn',rep:'Ken B.',age:'40m',addr:'92 Laurel Ave, Salem, VA 24153',emp:'Ferguson Enterprises',job:'Operations Manager',phone:'(540) 555-0143',email:'l.ortega@email.com',housing:'Own · $2,100/mo',joint:false,trVin:'1F65F5DY7G0A22110',trYear:'2016',trMake:'Coachmen',trModel:'Freelander 27QB'},
+  {id:'A-1036',name:'Priya Shah',pName:'Priya Shah',unit:'air',app:748,co:748,income:7200,status:'Conditioned',cls:'bad',rep:'Tammy C.',age:'1d',addr:'7 Birchwood Ct, Roanoke, VA 24014',emp:'Self-employed',job:'Consultant',phone:'(540) 555-0177',email:'priya.shah@email.com',housing:'Rent · $1,450/mo',joint:false,trVin:'54CUM1220K1123344',trYear:'2019',trMake:'Winnebago',trModel:'Micro Minnie 2106DS'},
+  {id:'A-1031',name:'Robert Klein',pName:'Robert Klein',unit:'thor',app:800,co:800,income:16500,status:'Prequalified',cls:'new',rep:'Ken B.',age:'3h',addr:'400 Highland Rd, Blacksburg, VA 24060',emp:'Retired',job:'Retired',phone:'(540) 555-0188',email:'r.klein@email.com',housing:'Own · paid off',joint:false,trVin:'1F66F5DY9F0A55667',trYear:'2015',trMake:'Tiffin',trModel:'Allegro 31SA'},
+  {id:'A-1024',name:'Amanda Cole',pName:'Amanda Cole',unit:'jay',app:665,co:665,income:5400,status:'New lead',cls:'new',rep:'Tammy C.',age:'18m',addr:'233 Maple St, Christiansburg, VA 24073',emp:'Kroger',job:'Shift Lead',phone:'(540) 555-0122',email:'a.cole@email.com',housing:'Rent · $1,150/mo',joint:false,trVin:'4YDT26922H8899001',trYear:'2017',trMake:'Keystone',trModel:'Hideout 178LHS'},
+  {id:'A-1018',name:'Greg & Sue Palmer',pName:'Greg Palmer',unit:'mont',app:760,co:772,income:9800,status:'Funded',cls:'fund',rep:'Ken B.',age:'—',addr:'19 Lakeview Dr, Moneta, VA 24121',emp:'Carilion Clinic',job:'Nurse Practitioner',phone:'(540) 555-0166',email:'palmers@email.com',housing:'Own · $1,700/mo',joint:true,coName:'Sue Palmer',coAddr:'19 Lakeview Dr, Moneta, VA 24121',coPhone:'(540) 555-0167',coEmail:'sue.palmer@email.com',coEmp:'Bedford Memorial Hospital',coJob:'Registered Nurse',coIncome:6100,trVin:'573FB2820K5011223',trYear:'2019',trMake:'Grand Design',trModel:'Imagine 2500RL'}
+];
+let SCORES={app:782,co:784};
+let curApp=APPS[0];
+let state={unit:'gd',term:180,markup:0};
+const fmt=n=>'$'+Math.round(n).toLocaleString();
+const pct=n=>(n*100).toFixed(2)+'%';
+const val=id=>parseFloat(document.getElementById(id).value)||0;
+const bandFor=dp=>{for(const b of BANDS)if(dp>=b.min-1e-9)return b.k;return '0';};
+const bandLabel=k=>k==='0'?'0–5%':k+'%';
+const pmt=(P,apr,n)=>{const r=apr/12;return r===0?P/n:P*r/(1-Math.pow(1+r,-n));};
+const tierFromScore=s=>{for(let t=1;t<=5;t++)if(s>=CARD[t].min)return t;return null;};
+function elig(){const joint=curApp.joint;const avg=joint?Math.round((SCORES.app+SCORES.co)/2):SCORES.app;const both=joint?(SCORES.app>=660&&SCORES.co>=660):SCORES.app>=660;const t=tierFromScore(avg);return{avg,tier:t,ok:both&&t!=null,joint};}
+function advanceBase(){const u=UNITS[state.unit];return u.cond==='new'?u.msrp:u.value*1.10;}
+function buyRate(tier,term,dp){const c=CARD[tier];let b=bandFor(dp);if(!(b in c.rates))b='10';return{buy:c.rates[b]+TERM_ADJ[term],band:b,base:c.rates[b],termAdj:TERM_ADJ[term]};}
+function participation(prime,mk){if(mk===0)return .01;if(Math.abs(mk-.005)<1e-9)return prime?.02:.015;return prime?.03:.02;}
+function fiTotal(){return ['fi_esc','fi_gap','fi_road','fi_tw','fi_theft','fi_roof','fi_fob','fi_paint'].reduce((s,id)=>s+val(id),0);}
+function metricsFor(price,base){
+  const tax=val('i_tax'),doc=val('i_doc'),tl=val('i_tl');
+  const netTrade=val('i_trade')-val('i_payoff'),cash=val('i_down'),income=curApp.income;
+  const totalDown=cash+Math.max(netTrade,0);
+  const amt=price+tax+doc+tl+fiTotal()-netTrade-cash;
+  const dp=price>0?totalDown/price:0;
+  const e=elig(),c=CARD[e.tier],br=buyRate(e.tier,state.term,dp),sell=br.buy+state.markup;
+  const pay=pmt(amt,sell,state.term),ltv=base>0?amt/base:0,pti=income>0?pay/income:0;
+  const reserve=participation(c.prime,state.markup)*amt;
+  const within=ltv<=c.maxLTV+1e-9&&amt<=c.maxLoan&&dp>=c.minDown-1e-9&&amt>=15000;
+  return {amt,base,dp,e,c,br,sell,pay,ltv,pti,reserve,within,netTrade,cash,totalDown};
+}
+function deal(){return metricsFor(val('i_price'),advanceBase());}
+function render(){
+  const u=UNITS[state.unit],d=deal();
+  document.getElementById('dh_name').textContent=curApp.name;
+  document.getElementById('dh_meta').textContent='· '+u.name+' · '+u.type+' · '+(u.cond==='new'?'New':'Used');
+  document.getElementById('dh_status').innerHTML=d.within?'<span class="pill ok">Approved · in tolerance</span>':'<span class="pill bad">Exceeds approval</span>';
+  document.getElementById('ap_id').textContent='#'+curApp.id;
+  document.getElementById('ap_name').textContent=curApp.name;
+  document.getElementById('cd_app').textContent=SCORES.app;document.getElementById('cd_co').textContent=d.e.joint?SCORES.co:'— (individual)';
+  document.getElementById('cd_avg').textContent=d.e.avg;
+  document.getElementById('cd_tier').textContent='Tier '+d.e.tier+' · '+d.c.fico+' · '+(d.c.prime?'prime':'near-prime');
+  document.getElementById('cd_env').textContent='max LTV '+(d.c.maxLTV*100).toFixed(0)+'% · max loan '+fmt(d.c.maxLoan)+' · min down '+(d.c.minDown*100).toFixed(0)+'%';
+  document.getElementById('o_nettrade').textContent=fmt(d.netTrade);
+  document.getElementById('o_backend').textContent=fmt(fiTotal());
+  document.getElementById('o_totaldown').textContent=fmt(d.totalDown)+'  ('+(d.dp*100).toFixed(1)+'% · band '+bandLabel(d.br.band)+')';
+  document.getElementById('rv0').textContent=fmt(participation(d.c.prime,0)*d.amt);
+  document.getElementById('rv1').textContent=fmt(participation(d.c.prime,.005)*d.amt);
+  document.getElementById('rv2').textContent=fmt(participation(d.c.prime,.01)*d.amt);
+  document.querySelectorAll('#part .p').forEach(p=>p.classList.toggle('on',Math.abs(parseFloat(p.dataset.mk)-state.markup)<1e-9));
+  document.querySelectorAll('#segterm button').forEach(b=>b.classList.toggle('on',+b.dataset.t===state.term));
+  const tb=document.getElementById('termsbody');tb.innerHTML='';
+  [144,180,240].forEach(term=>{const b=buyRate(d.e.tier,term,d.dp),s=b.buy+state.markup,p=pmt(d.amt,s,term);
+    const tr=document.createElement('tr');if(term===state.term)tr.className='sel';
+    tr.innerHTML='<td><b>'+term+' mo</b></td><td class="apr">'+pct(s)+'</td><td class="pay">'+fmt(p)+'/mo</td><td><button class="btn ghost sm" data-t="'+term+'">Select</button></td>';
+    tb.appendChild(tr);});
+  tb.querySelectorAll('[data-t]').forEach(x=>x.onclick=()=>{state.term=+x.dataset.t;render();});
+  document.getElementById('bu').innerHTML=
+    '<div class="r"><span>Tier '+d.e.tier+' @ 240-mo · '+bandLabel(d.br.band)+' down</span><span>'+pct(d.br.base)+'</span></div>'
+   +'<div class="r"><span>Term '+state.term+'-mo adjustment</span><span class="minus">'+(d.br.termAdj===0?'—':'−'+pct(Math.abs(d.br.termAdj)))+'</span></div>'
+   +'<div class="r head"><span>= Buy rate (decision basis)</span><span>'+pct(d.br.buy)+'</span></div>'
+   +'<div class="r"><span>Dealer markup</span><span>'+(state.markup===0?'—':'+'+pct(state.markup))+'</span></div>'
+   +'<div class="r head"><span>= Customer APR</span><span>'+pct(d.sell)+'</span></div>';
+  document.getElementById('sm_amt').textContent=fmt(d.amt);
+  document.getElementById('sm_apr').textContent=pct(d.sell);
+  document.getElementById('sm_buy').textContent=pct(d.br.buy);
+  document.getElementById('sm_ltv').textContent=(d.ltv*100).toFixed(1)+'% / '+(d.c.maxLTV*100).toFixed(0)+'% max';
+  document.getElementById('sm_res').textContent=fmt(d.reserve);
+  document.getElementById('sm_down').textContent=fmt(d.totalDown);
+  document.getElementById('b_amt').textContent=fmt(d.amt);
+  document.getElementById('b_down').textContent=fmt(d.totalDown);
+  document.getElementById('b_term').textContent=state.term+' mo';
+  document.getElementById('b_apr').textContent=pct(d.sell);
+  document.getElementById('b_pay').textContent=fmt(d.pay)+'/mo';
+  document.getElementById('b_ltv').textContent=(d.ltv*100).toFixed(1)+'%';
+  document.getElementById('b_res').textContent=fmt(d.reserve);
+  document.getElementById('cp_hi').textContent='Hi '+curApp.name.split(' ')[0]+' 👋';
+  document.getElementById('cp_pay').textContent=fmt(d.pay)+'/mo';
+  document.getElementById('cp_apr').textContent=pct(d.sell);
+  document.getElementById('cp_term').textContent=state.term+' mo';
+  document.getElementById('cp_unit').textContent=u.name;
+  document.getElementById('cp_amt').textContent=fmt(d.amt);
+  document.getElementById('cu_name').textContent=u.name;
+  document.getElementById('cu_cond').textContent=u.cond==='new'?'New':'Used';
+  document.getElementById('cu_type').textContent=u.type;
+  document.getElementById('cu_ymm').textContent=u.year+' '+u.make+' '+u.model;
+  document.getElementById('cu_vin').textContent=u.vin;
+  document.getElementById('cu_miles').textContent=u.miles;
+  document.getElementById('cu_price').textContent=fmt(val('i_price'));
+  document.getElementById('cu_val').textContent=fmt(u.value);
+  document.getElementById('cu_basis').textContent=u.cond==='new'?'MSRP':'NADA / J.D. Power Avg Retail × 1.10';
+  document.getElementById('cu_base').textContent=fmt(d.base);
+  document.getElementById('cu_max').textContent=fmt(d.c.maxLTV*d.base);
+  document.getElementById('cu_ltv').textContent=(d.ltv*100).toFixed(1)+'%';
+  document.getElementById('ct_vin').textContent=curApp.trVin;
+  document.getElementById('ct_year').textContent=curApp.trYear;
+  document.getElementById('ct_make').textContent=curApp.trMake;
+  document.getElementById('ct_model').textContent=curApp.trModel;
+  document.getElementById('ct_allow').textContent=fmt(val('i_trade'));
+  document.getElementById('ct_payoff').textContent=fmt(val('i_payoff'));
+  document.getElementById('ct_net').textContent=fmt(d.netTrade);
+  renderRehash(d);
+}
+function renderRehash(d){
+  document.getElementById('rh_downamt').textContent=fmt(d.cash);
+  document.getElementById('rh_downpct').textContent=(d.dp*100).toFixed(1)+'%';
+  document.getElementById('rh_rate').textContent=pct(d.sell);
+  document.getElementById('rh_pay').textContent=fmt(d.pay);
+  document.getElementById('rh_ltv').textContent=(d.ltv*100).toFixed(1)+'%';
+  document.getElementById('rh_ltvcap').textContent='approved max '+(d.c.maxLTV*100).toFixed(0)+'%';
+  const scale=0.78/d.c.maxLTV,fill=document.getElementById('rh_tolfill');
+  fill.style.width=Math.min(100,d.ltv*scale*100)+'%';fill.style.background=d.within?'var(--ok)':'var(--bad)';
+  document.getElementById('rh_tolmark').style.left=(d.c.maxLTV*scale*100)+'%';
+  const sb=document.getElementById('rh_status');
+  if(d.within){sb.className='statusbox ok';sb.innerHTML='✓ Within approved tolerance.';}
+  else{sb.className='statusbox bad';let w=[];if(d.ltv>d.c.maxLTV)w.push('LTV over '+(d.c.maxLTV*100).toFixed(0)+'%');if(d.amt>d.c.maxLoan)w.push('over max loan');if(d.dp<d.c.minDown)w.push('under min down');if(d.amt<15000)w.push('under $15k min');sb.innerHTML='⚠ Exceeds approval ('+w.join(', ')+') — re-decision required.';}
+  const s=document.getElementById('rh_slider');if(document.activeElement!==s)s.value=Math.min(40,(d.dp*100)).toFixed(1);
+}
+function rehashSlide(v){const price=val('i_price'),netEq=Math.max(val('i_trade')-val('i_payoff'),0);
+  const cash=Math.max(0,(v/100)*price-netEq);document.getElementById('i_down').value=Math.round(cash);render();}
+function openChangeColl(){document.getElementById('nc_compare').innerHTML='';document.getElementById('nc_accept').style.display='none';
+  document.getElementById('nc_cond').value='new';ncCond();
+  ['nc_year','nc_make','nc_model','nc_price','nc_msrp','nc_jd'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ov_coll').classList.add('show');}
+function ncCond(){const used=document.getElementById('nc_cond').value==='used';
+  document.getElementById('nc_msrpwrap').style.display=used?'none':'block';
+  document.getElementById('nc_jdwrap').style.display=used?'block':'none';}
+function ncAuto(){const cond=document.getElementById('nc_cond').value;const p=parseFloat(document.getElementById('nc_price').value)||0;
+  if(cond==='new'&&!document.getElementById('nc_msrp').value)document.getElementById('nc_msrp').value=p;}
+function pullJD(){const p=parseFloat(document.getElementById('nc_price').value)||0;const est=Math.round(p*0.93/50)*50;
+  document.getElementById('nc_jd').value=est;toast('NADA / J.D. Power value pulled (simulated)');}
+function newCollObj(){const cond=document.getElementById('nc_cond').value;
+  const price=parseFloat(document.getElementById('nc_price').value)||0;
+  const msrp=parseFloat(document.getElementById('nc_msrp').value)||price;
+  const jd=parseFloat(document.getElementById('nc_jd').value)||0;
+  const value=cond==='new'?msrp:(jd||Math.round(price*0.93));
+  const base=cond==='new'?msrp:value*1.10;
+  return {cond,price,msrp,value,base,
+    name:(document.getElementById('nc_year').value+' '+document.getElementById('nc_make').value+' '+document.getElementById('nc_model').value).trim()||'New unit',
+    type:document.getElementById('nc_type').value,year:document.getElementById('nc_year').value,make:document.getElementById('nc_make').value,model:document.getElementById('nc_model').value};
+}
+let pendingColl=null;
+function cmpRow(label,oldv,newv,warnNew){return '<tr><td>'+label+'</td><td>'+oldv+'</td><td style="'+(warnNew?'color:var(--bad);font-weight:800':'font-weight:700')+'">'+newv+'</td></tr>';}
+function compareColl(){
+  const nc=newCollObj();if(nc.price<=0){toast('Enter a sales price first');return;}
+  pendingColl=nc;
+  const oldM=deal(),newM=metricsFor(nc.price,nc.base);
+  const box=document.getElementById('nc_compare');
+  box.innerHTML='<div style="font-weight:800;font-size:12.5px;margin:14px 0 4px">Compare — current vs new collateral</div>'
+  +'<table class="cmp"><thead><tr><th>Metric</th><th>Current ('+UNITS[state.unit].name+')</th><th>New ('+nc.name+')</th></tr></thead><tbody>'
+  +cmpRow('Advance basis', UNITS[state.unit].cond==='new'?'MSRP':'NADA/JDP ×1.10', nc.cond==='new'?'MSRP':'NADA/JDP ×1.10')
+  +cmpRow('Advance base', fmt(oldM.base), fmt(newM.base))
+  +cmpRow('Sales price', fmt(val('i_price')), fmt(nc.price))
+  +cmpRow('Amount financed', fmt(oldM.amt), fmt(newM.amt))
+  +cmpRow('Customer APR', pct(oldM.sell), pct(newM.sell))
+  +cmpRow('Monthly payment', fmt(oldM.pay)+'/mo', fmt(newM.pay)+'/mo')
+  +cmpRow('LTV', (oldM.ltv*100).toFixed(1)+'%', (newM.ltv*100).toFixed(1)+'% / '+(newM.c.maxLTV*100).toFixed(0)+'% max', newM.ltv>newM.c.maxLTV)
+  +cmpRow('Tolerance', oldM.within?'✓ in tolerance':'⚠ exceeds', newM.within?'✓ in tolerance':'⚠ exceeds — re-decision', !newM.within)
+  +'</tbody></table><div class="hint">'+(newM.within?'New collateral keeps the deal within the approved advance.':'New collateral pushes the deal outside the approval — a re-decision would be required.')+'</div>';
+  document.getElementById('nc_accept').style.display='inline-block';
+}
+function acceptColl(){if(!pendingColl)return;const nc=pendingColl;
+  UNITS.custom={name:nc.name,type:nc.type,cond:nc.cond,year:nc.year,make:nc.make,model:nc.model,msrp:nc.msrp,value:nc.value,vin:'NEW-ENTRY',miles:'—'};
+  state.unit='custom';document.getElementById('i_price').value=nc.price;
+  closeOv('ov_coll');render();toast('Collateral updated → '+nc.name);}
+document.querySelectorAll('#part .p').forEach(p=>p.onclick=()=>{state.markup=parseFloat(p.dataset.mk);render();});
+document.querySelectorAll('#segterm button').forEach(b=>b.onclick=()=>{state.term=+b.dataset.t;render();});
+document.querySelectorAll('#s_deal input').forEach(i=>i.addEventListener('input',render));
+
+const titles={deal:'Deal Structure',collateral:'Collateral',applicant:'Applicant Information',tasks:'Tasks',chat:'Chat',portal:'Customer Portal'};
+function go(scr){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s_'+scr).classList.add('active');
+  document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.screen===scr));
+  document.getElementById('pagetitle').textContent=titles[scr];document.getElementById('pagetitle').style.display='block';
+  document.getElementById('stickybar').style.display=scr==='deal'?'flex':'none';window.scrollTo(0,0);}
+document.querySelectorAll('.navitem').forEach(n=>n.onclick=()=>go(n.dataset.screen));
+function goList(name){document.body.className='mode-list';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s_'+name).classList.add('active');
+  document.querySelectorAll('.listnav button').forEach(b=>b.classList.toggle('on',b.dataset.list===name));
+  document.getElementById('pagetitle').style.display='none';
+  document.getElementById('stickybar').style.display='none';window.scrollTo(0,0);}
+function showList(){goList('apps');}
+
+function aRow(k,v){return '<div class="krow"><span class="k">'+k+'</span><b>'+v+'</b></div>';}
+function renderAppInfo(){
+  document.getElementById('pa_body').innerHTML=
+    aRow('Name',curApp.pName)+aRow('Address',curApp.addr)+aRow('Phone',curApp.phone)+aRow('Email',curApp.email)
+   +aRow('Housing',curApp.housing)+aRow('Employer',curApp.emp)+aRow('Job title',curApp.job)
+   +aRow('Gross monthly income',fmt(curApp.income))+aRow('Credit score',curApp.app);
+  const co=document.getElementById('co_body');
+  if(curApp.joint){
+    co.innerHTML=aRow('Name',curApp.coName)+aRow('Address',curApp.coAddr)+aRow('Phone',curApp.coPhone)
+     +aRow('Email',curApp.coEmail)+aRow('Employer',curApp.coEmp)+aRow('Job title',curApp.coJob)
+     +aRow('Gross monthly income',fmt(curApp.coIncome))+aRow('Credit score',curApp.co);
+  } else {
+    co.innerHTML='<div style="color:var(--muted);padding:8px 0">Individual application — no co-applicant.</div>';
+  }
+}
+
+function openApp(id){
+  curApp=APPS.find(a=>a.id===id);
+  SCORES={app:curApp.app,co:curApp.co};
+  state={unit:curApp.unit,term:180,markup:0};
+  const u=UNITS[curApp.unit];
+  const dflt={i_price:(u.cond==='new'?u.msrp:u.value),i_tax:0,i_doc:799,i_tl:425,i_trade:12000,i_payoff:4500,i_down:Math.round((u.cond==='new'?u.msrp:u.value)*0.10),fi_esc:3200,fi_gap:895,fi_road:0,fi_tw:799,fi_theft:0,fi_roof:0,fi_fob:0,fi_paint:0};
+  for(const k in dflt)document.getElementById(k).value=dflt[k];
+  document.querySelectorAll('#segterm button').forEach(b=>b.classList.toggle('on',+b.dataset.t===180));
+  document.getElementById('sb_name').textContent=curApp.name;
+  document.getElementById('sb_id').textContent='#'+curApp.id+' · '+curApp.status;
+  renderAppInfo();buildChat();
+  document.body.className='mode-deal';render();go('deal');
+}
+function buildApps(){const tb=document.getElementById('appsbody');tb.innerHTML='';
+  APPS.forEach(a=>{const u=UNITS[a.unit];const tr=document.createElement('tr');tr.className='clk';tr.onclick=()=>openApp(a.id);
+    tr.innerHTML='<td><b>#'+a.id+'</b></td><td><b>'+a.name+'</b></td><td>'+u.name+'</td><td>'+fmt((u.cond==='new'?u.msrp:u.value))+'</td><td><span class="pill '+a.cls+'">'+a.status+'</span></td><td>'+Math.round((a.app+a.co)/2)+'</td><td>'+a.rep+'</td><td>'+a.age+'</td>';
+    tb.appendChild(tr);});}
+function buildRateSheet(){const tb=document.getElementById('rsbody');tb.innerHTML='';
+  for(let t=1;t<=5;t++){const c=CARD[t];const r=c.rates;const cell=k=>k in r?(r[k]*100).toFixed(2)+'%':'n/a';
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td><b>'+t+'</b></td><td>'+c.fico+'</td><td>'+(c.maxLTV*100).toFixed(0)+'%</td><td>'+fmt(c.maxLoan)+'</td><td>'+cell('0')+'</td><td>'+cell('10')+'</td><td>'+cell('20')+'</td><td>'+cell('25')+'</td>';
+    tb.appendChild(tr);}}
+function buildBars(){const data=[['Jan',780],['Feb',910],['Mar',1040],['Apr',970],['May',1180],['Jun',1310],['Jul',1240]];
+  const max=1400;const box=document.getElementById('bars');box.innerHTML='';
+  data.forEach(([m,v])=>{const col=document.createElement('div');col.className='barcol';
+    col.innerHTML='<div class="bv">$'+(v/1000).toFixed(2)+'M</div><span style="height:'+(v/max*100)+'%"></span><div class="bl">'+m+'</div>';
+    box.appendChild(col);});}
+function downloadRateCard(){
+  let rows=[['Amplifi RV Rate Card v2 — Effective 7/1/2026'],[],
+    ['Tier','FICO','Max LTV','Max Loan','0-5% down','10% down','20% down','25% down']];
+  for(let t=1;t<=5;t++){const c=CARD[t];const r=c.rates;const cell=k=>k in r?(r[k]*100).toFixed(2)+'%':'n/a';
+    rows.push([t,c.fico,(c.maxLTV*100).toFixed(0)+'%',c.maxLoan,cell('0'),cell('10'),cell('20'),cell('25')]);}
+  rows.push([]);rows.push(['Term adjustments']);rows.push(['240 months','Base']);rows.push(['180 months','-0.25%']);rows.push(['144 months','-0.50%']);
+  rows.push([]);rows.push(['Dealer participation']);rows.push(['Buy rate','Prime 1% / Near-prime 1%']);rows.push(['+0.50% markup','Prime 2% / Near-prime 1.5%']);rows.push(['+1.00% markup','Prime 3% / Near-prime 2%']);
+  rows.push([]);rows.push(['Notes','Each down band right = -0.25%. Min score 660, both applicants >=660. Min financed $15,000.']);
+  const csv=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='Amplifi_RV_Rate_Card_v2.csv';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);toast('Rate card downloaded (CSV)');
+}
+
+/* scheduling */
+function openSched(){document.getElementById('ov_sched').classList.add('show');}
+function schedDone(){const d=document.getElementById('sc_date').value||'the requested date';const tp=document.getElementById('sc_topic').value;
+  closeOv('ov_sched');toast('Training requested: '+tp+' on '+d+' — Dealer Success will confirm.');}
+
+/* tasks */
+const TASKS=[
+  {t:'Proof of income (POI)',d:'Paystubs, bank statements, or retirement / pension',status:'ok',types:['Paystubs','Bank statements','Retirement / pension','SSA / award letter']},
+  {t:'Proof of residence',d:'Utility bill or lease — if requested',status:'wait',types:['Utility bill','Lease','Mortgage statement']},
+  {t:'MSO / Title',d:'New → MSO · Used → Title',status:'wait',types:['MSO','Title']},
+  {t:"Driver's license",d:'Fallback if not completed in Customer Portal',status:'wait',types:["Driver's license"]},
+  {t:"Buyer's order / purchase agreement",d:'Optional — signed purchase agreement',status:'opt',types:['Purchase Agreement',"Buyer's Order"]},
+  {t:'Insurance policy',d:'Provided after contracting — full coverage, Amplifi lienholder, max $1,000 deductible',status:'post',types:['Insurance binder','Declarations page']}
+];
+function chipFor(s){return s==='ok'?'<span class="chip ok">Received</span>':s==='opt'?'<span class="chip">Optional</span>':s==='post'?'<span class="chip post">After contracting</span>':'<span class="chip wait">Awaiting document</span>';}
+function buildTasks(){const box=document.getElementById('tasklist');box.innerHTML='';
+  TASKS.forEach((t,i)=>{const el=document.createElement('div');el.className='task';
+    el.innerHTML='<div class="ic">⬆</div><div class="meta"><div class="t">'+t.t+'</div><div class="d">'+t.d+'</div></div>'+chipFor(t.status)+'<button class="btn blue sm" onclick="openUpload('+i+')">Upload</button>';
+    box.appendChild(el);});}
+let curTask=0;
+function openUpload(i){curTask=i;const t=TASKS[i];document.getElementById('up_title').textContent=t.t;
+  document.getElementById('up_type').innerHTML=t.types.map(x=>'<option>'+x+'</option>').join('');
+  document.getElementById('ov_upload').classList.add('show');}
+function uploadDone(){TASKS[curTask].status='ok';buildTasks();closeOv('ov_upload');toast('Document uploaded ✅');}
+
+/* chat */
+let chat=[];
+function buildChat(){chat=[
+  {who:'them',name:'Amplifi Underwriting',t:'8:42 AM',m:'Approved Tier '+tierFromScore(Math.round((curApp.app+curApp.co)/2))+' — see the decision basis on Deal Structure. Stips: proof of income + insurance provided after contracting.'},
+  {who:'me',name:'You · '+curApp.rep,t:'8:47 AM',m:'Thanks. Customer wants GAP + tire & wheel added. Still within tolerance?'},
+  {who:'them',name:'Amplifi Underwriting',t:'8:49 AM',m:'Yes — back-end is fine as long as total advance stays within the approved LTV. GAP must be cancellable.'},
+  {who:'me',name:'You · '+curApp.rep,t:'8:51 AM',m:'Perfect. Uploading paystubs via Plaid now.'},
+  {who:'them',name:'Amplifi Funding',t:'9:03 AM',m:'Received. Insurance policy comes in after contracting and then we can fund.'}
+];renderChat();}
+function renderChat(){const log=document.getElementById('chatlog');log.innerHTML='';
+  chat.forEach(c=>{const el=document.createElement('div');el.className='msg '+(c.who==='me'?'me':'them');
+    el.innerHTML='<div class="mh">'+c.name+'</div>'+c.m+'<div class="mt">'+c.t+'</div>';log.appendChild(el);});
+  log.scrollTop=log.scrollHeight;}
+function sendChat(){const inp=document.getElementById('chatinput');const v=inp.value.trim();if(!v)return;
+  const t=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  chat.push({who:'me',name:'You · '+curApp.rep,t,m:v});inp.value='';renderChat();
+  setTimeout(()=>{chat.push({who:'them',name:'Amplifi Underwriting',t:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),m:'Got it — reviewing and will update the decision if needed.'});renderChat();},900);}
+
+function closeOv(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
+function resetDeal(){openApp(curApp.id);toast('Deal reset');}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+
+/* ---- Generate Contract verification ---- */
+const FI_LABELS={fi_esc:'Extended service contract',fi_gap:'GAP',fi_road:'Road hazard',fi_tw:'Tire & wheel',fi_theft:'Anti-theft',fi_roof:'ESC — roof',fi_fob:'Key fob replacement',fi_paint:'Paint & fabrication'};
+const CANCELLABLE={fi_esc:true,fi_gap:true,fi_road:true,fi_tw:false,fi_theft:true,fi_roof:true,fi_fob:false,fi_paint:true};
+const FI_META={
+  fi_esc:{provider:'SecureGuard',term:'72 mo / 100k mi',coverage:'Exclusionary powertrain+',refund:'Pro-rata · 60-day full'},
+  fi_gap:{provider:'Amplifi GAP',term:'Loan term',coverage:'Up to 150% LTV',refund:'Pro-rata'},
+  fi_road:{provider:'RoadShield',term:'60 mo',coverage:'Road hazard / tire',refund:'Pro-rata'},
+  fi_tw:{provider:'TireCo',term:'48 mo',coverage:'Tire & wheel road hazard',refund:'None found'},
+  fi_theft:{provider:'TheftGuard',term:'Lifetime',coverage:'Theft deterrent + registration',refund:'Pro-rata'},
+  fi_roof:{provider:'RoofCare',term:'36 mo',coverage:'RV roof membrane',refund:'Pro-rata'},
+  fi_fob:{provider:'KeyReplace',term:'60 mo',coverage:'Key / fob replacement',refund:'None found'},
+  fi_paint:{provider:'FinishPro',term:'60 mo',coverage:'Paint & fabric protection',refund:'Pro-rata'}
+};
+let ctState={},ctAnalyzed=false;
+function ctDealSum(){const d=deal(),u=UNITS[state.unit];
+  const row=(lab,v,last)=>'<div class="ph-row"'+(last?' style="border-bottom:0"':'')+'><span>'+lab+'</span><b>'+v+'</b></div>';
+  let h=row('Applicant',curApp.name)+row('Unit',u.name+' ('+(u.cond==='new'?'New':'Used')+')');
+  h+='<div class="pmeta" style="margin:6px 0 2px">Front end</div>';
+  [['Sales price','i_price'],['Sales tax','i_tax'],['Doc fee','i_doc'],['Title & license','i_tl'],['Trade allowance','i_trade'],['Trade payoff','i_payoff'],['Cash down','i_down']].forEach(([lab,id])=>{if(val(id)!==0)h+=row(lab,fmt(val(id)));});
+  const beKeys=Object.keys(FI_LABELS).filter(k=>val(k)>0);
+  if(beKeys.length){h+='<div class="pmeta" style="margin:6px 0 2px">Back end</div>';beKeys.forEach(k=>h+=row(FI_LABELS[k],fmt(val(k))));}
+  h+='<div class="pmeta" style="margin:6px 0 2px">Totals</div>';
+  h+=row('Amount financed',fmt(d.amt))+row('Term / APR',state.term+' mo · '+pct(d.sell))+row('Monthly payment',fmt(d.pay)+'/mo')+row('Down payment',fmt(d.totalDown),true);
+  document.getElementById('ct_dealsum').innerHTML=h;}
+function openContract(){
+  const u=UNITS[state.unit];
+  document.getElementById('ct_form').style.display='block';
+  document.getElementById('ct_success').style.display='none';
+  ctDealSum();
+  const isNew=u.cond==='new';
+  document.getElementById('ct_msrpstep').style.display=isNew?'block':'none';
+  if(isNew)document.getElementById('ct_msrpline').innerHTML='<div class="ph-row" style="border-bottom:0"><span>MSRP submitted on this deal</span><b>'+fmt(u.msrp)+'</b></div>';
+  document.getElementById('ct_dealok').checked=false;
+  document.getElementById('ct_msrpok').checked=false;
+  document.getElementById('ct_results').innerHTML='';
+  document.getElementById('ct_total').innerHTML='';
+  document.getElementById('ct_ai_summary').innerHTML='';
+  ctState={};ctAnalyzed=false;
+  const dz=document.getElementById('ct_drop');
+  const keys=Object.keys(FI_LABELS).filter(k=>val(k)>0);
+  const be=document.getElementById('ct_bestep');
+  if(!keys.length){be.style.display='none';ctAnalyzed=true;}
+  else{be.style.display='block';dz.style.display='block';dz.className='dropz';dz.textContent='⬆ Drag & drop all back-end product forms here (PDF) — or click to browse';}
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag');};
+  dz.ondragleave=()=>dz.classList.remove('drag');
+  dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag');ctDrop();};
+  dz.onclick=()=>ctDrop();
+  ctGate();
+  document.getElementById('ov_contract').classList.add('show');
+}
+function ctDrop(){
+  if(ctAnalyzed)return;
+  const keys=Object.keys(FI_LABELS).filter(k=>val(k)>0);
+  const dz=document.getElementById('ct_drop');
+  dz.className='dropz done';dz.textContent='📄 '+keys.length+' back-end form(s) uploaded';
+  document.getElementById('ct_results').innerHTML='<div class="pverdict loading" style="padding:8px 0">🤖 AI reader identifying products &amp; checking cancellability…</div>';
+  setTimeout(()=>{ctAnalyzed=true;renderResults();},1200);
+}
+function renderResults(){
+  const keys=Object.keys(FI_LABELS).filter(k=>val(k)>0);
+  ctState={};
+  document.getElementById('ct_results').innerHTML=keys.map(k=>{
+    const canc=CANCELLABLE[k];ctState[k]={cancellable:canc};const m=FI_META[k];
+    let h='<div class="prod"><div class="ptop"><b>'+FI_LABELS[k]+'</b><span>'+fmt(val(k))+'</span></div>';
+    h+='<div class="pmeta">🔎 AI-identified · '+m.provider+' · '+m.term+' · '+m.coverage+' · refund: '+m.refund+'</div>';
+    if(canc)h+='<div class="pverdict ok">✓ Cancellable — cancellation clause detected (§8). Eligible as back-end.</div>';
+    else h+='<div class="pverdict bad">⚠ Non-cancellable — no cancellation clause found. Must be moved to the FRONT END of the structure.</div>'
+      +'<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn orange sm" onclick="moveToFront(\''+k+'\')">Move to front end</button><button class="btn ghost sm" onclick="toast(\'Requested a cancellable version from '+m.provider+'\')">Request cancellable version</button></div>';
+    h+='</div>';return h;}).join('');
+  const elig=keys.filter(k=>CANCELLABLE[k]).reduce((s,k)=>s+val(k),0);
+  document.getElementById('ct_total').innerHTML='<div class="ct-total">Eligible back-end total (cancellable): '+fmt(elig)+'  ·  these forms will be appended to the end of the contract package.</div>';
+  ctGate();
+}
+function moveToFront(k){
+  const amt=val(k);
+  document.getElementById('i_price').value=Math.round(val('i_price')+amt);
+  document.getElementById(k).value=0;
+  render();ctDealSum();renderResults();
+  toast(FI_LABELS[k]+' moved to front end (added to sale price)');
+}
+function ctGate(){
+  const u=UNITS[state.unit],isNew=u.cond==='new';
+  const dealok=document.getElementById('ct_dealok').checked;
+  const msrpok=isNew?document.getElementById('ct_msrpok').checked:true;
+  const keys=Object.keys(ctState);
+  const bad=keys.filter(k=>ctState[k].cancellable===false);
+  const summ=document.getElementById('ct_ai_summary');
+  if(ctAnalyzed&&bad.length)summ.innerHTML='<div class="ct-block">⚠ '+bad.map(k=>FI_LABELS[k]).join(', ')+' cannot stay in the back end. Move '+(bad.length>1?'them':'it')+' to the front end of the structure, then generate.</div>';
+  else summ.innerHTML='';
+  document.getElementById('ct_gen').disabled=!(dealok&&msrpok&&ctAnalyzed&&bad.length===0);
+}
+function ctGenerate(){
+  const joint=curApp.joint;
+  const signers=['Applicant — '+curApp.pName];
+  if(joint)signers.push('Co-applicant — '+curApp.coName);
+  signers.push('Dealer / F&I');
+  const forms=Object.keys(ctState).filter(k=>ctState[k].cancellable).length;
+  const sig=signers.length*3, init=signers.length*2;
+  document.getElementById('ct_form').style.display='none';
+  const s=document.getElementById('ct_success');s.style.display='block';
+  s.innerHTML='<div class="ct-ok"><div class="t">✓ Contract package generated</div><ul>'
+    +'<li>Appended <b>'+forms+'</b> back-end product form(s) to the back of the package</li>'
+    +'<li>AI placed <b>'+sig+'</b> signature fields and <b>'+init+'</b> initials across: '+signers.join(' · ')+'</li>'
+    +'<li>Package routed for e-signature</li></ul></div>'
+    +'<div class="modrow"><button class="btn orange sm" onclick="closeOv(\'ov_contract\');toast(\'Sent for e-sign ✍️\')">Done</button></div>';
+}
+
+buildApps();buildTasks();buildRateSheet();buildBars();goList('apps');
+</script>
+</body>
+</html>
